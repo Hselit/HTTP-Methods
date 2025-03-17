@@ -83,8 +83,8 @@ router.put('/:id',function(req,res){
     const empid = req.params.id;
   const {name,age,role,password} = req.body;
 
-  if(!name && !age && !role && !password){
-    return res.status(400).json({message:"Atleast one field required.."});
+  if(!name || !age || !role || !password){
+    return res.status(400).json({message:"All field required.."});
   }
 
   const sql = "update employee set name = ?, age = ?, role = ?,password = ? where id = ?";
@@ -95,7 +95,7 @@ router.put('/:id',function(req,res){
      } 
      if(value.length > 0){
       let salt = await bcrypt.genSalt(10);
-      let hashedpass = await bcrypt.hash(salt,password);
+      let hashedpass = await bcrypt.hash(password,salt);
       const v = [name,age,role,hashedpass,empid];
       db.query(sql,v,(err,result)=>{
         if(err){
