@@ -2,9 +2,23 @@ var express = require('express');
 var router = express.Router();
 const db = require('../config/mysql');
 const bcrypt = require('bcrypt');
+const { body,validationResult} = require('express-validator');
 
 const app = express();
 app.use(express.json());
+
+const validation = [
+  body('name').isLength({min:3}).withMessage("Name must be greater than 3 characters"),
+  body('password').isLength({min:5}).withMessage("Password should be more than 5 character"),
+  (req,res,next) => {
+    const error = validationResult(req);
+    if(!error.isEmpty()){
+      return res.status(400).json({error:error.array()});
+    }
+    next();
+  },
+];
+
 
 //get method
 router.get('/', function(req, res) {
@@ -28,18 +42,14 @@ router.get('/', function(req, res) {
 router.get('/:id',function(req,res){
   try{
     const userid = req.params.id;
-  console.log(userid);
-  debugger;
-
-  db.query('select * from employee where id = ?',[userid],(err,value)=>{
+    db.query('select * from employee where id = ?',[userid],(err,value)=>{
     if(err){
       res.status(500).send("Error Occured :"+err);
     } else {
-      if(value.length > 0){
-        return res.json(value[0]);
-      } 
+        if(value.length > 0){
+          return res.json(value[0]);
+        } 
       return res.status(400).send("User Not Found..");
-      
     }
   });
   }
@@ -51,7 +61,7 @@ router.get('/:id',function(req,res){
 
 
 //post method
-router.post('/',async function(req,res){
+router.post('/',validation,async function(req,res){
   try{
     const {name,age,role,password} = req.body;
 
@@ -171,7 +181,7 @@ router.delete('/:id',function(req,res){
     if(err){
       res.status(500).json({message:"Error Occured : "+err});
     } else if(result.affectedRows === 0){
-      res.status(404).json({message:"No Employee found with this Id : "+empid});
+      res.status(400).json({message:"No Employee found with this Id : "+empid});
     } else {
       res.status(200).json({message:"Details Deleted"});
     }
