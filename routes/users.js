@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 const db = require('../config/mysql');
 const bcrypt = require('bcrypt');
-const { body,validationResult} = require('express-validator');
+const { body,validationResult, query} = require('express-validator');
 
 const app = express();
 app.use(express.json());
@@ -14,6 +14,11 @@ const validation = [
   body('password')
     .notEmpty().withMessage("Password is required")
     .isLength({min:5}).withMessage("Password should be more than 5 character"),
+  body('age')
+    .notEmpty().withMessage("Age Field is Required")
+    .isLength({min:10}).withMessage("Age should be greater than 10"),
+  body('role')
+    .notEmpty().withMessage("Role Field reuqired"),  
   (req,res,next) => {
     const error = validationResult(req);
     if(!error.isEmpty()){
@@ -24,25 +29,29 @@ const validation = [
 ];
 
 //get method
-router.get('/', function(req, res) {
-  try{
-    db.query('select * from employee',(err,values)=>{
-      if(err){
-        res.status(500).send("Error Occured.."+err);
-      } else{
-        console.log(values);
-        res.json(values);
-      }
-    });  
-  }
-  catch(error){
-    res.status(500).json({"message":"Internal Server Error "+error});
-  }
-});
+// router.get('/', function(req, res) {
+//   try{
+//     db.query('select * from employee',(err,values)=>{
+//       if(err){
+//         res.status(500).send("Error Occured.."+err);
+//       } else{
+//         console.log(values);
+//         res.json(values);
+//       }
+//     });  
+//   }
+//   catch(error){
+//     res.status(500).json({"message":"Internal Server Error "+error});
+//   }
+// });
 
 
 //get by id
-router.get('/:id',function(req,res){
+router.get('/:id',query('id').notEmpty().withMessage("ID required"),function(req,res){
+  const errors = validationResult(req);
+  if(!errors.isEmpty()){
+    return res.status(500).json({message:"Error Occured ",errors});
+  }
   try{
     const userid = req.params.id;
     db.query('select * from employee where id = ?',[userid],(err,value)=>{
@@ -51,8 +60,9 @@ router.get('/:id',function(req,res){
     } else {
         if(value.length > 0){
           return res.json(value[0]);
-        } 
-      return res.status(400).send("User Not Found..");
+        }else{
+          return res.status(400).send("User Not Found..");
+        }
     }
   });
   }
@@ -68,9 +78,9 @@ router.post('/',validation,async function(req,res){
   try{
     const {name,age,role,password} = req.body;
 
-  if(!name || !age || !role || !password){
-    return res.status(400).json({message:"All fields are required",type:"error"});
-  }
+  // if(!name || !age || !role || !password){
+  //   return res.status(400).json({message:"All fields are required",type:"error"});
+  // }
   let salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password,salt);
 
