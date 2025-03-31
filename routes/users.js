@@ -8,8 +8,12 @@ const app = express();
 app.use(express.json());
 
 const validation = [
-  body('name').isLength({min:3}).withMessage("Name must be greater than 3 characters"),
-  body('password').isLength({min:5}).withMessage("Password should be more than 5 character"),
+  body('name')
+    .notEmpty().withMessage("Name is required")
+    .isLength({min:3}).withMessage("Name must be greater than 3 characters"),
+  body('password')
+    .notEmpty().withMessage("Password is required")
+    .isLength({min:5}).withMessage("Password should be more than 5 character"),
   (req,res,next) => {
     const error = validationResult(req);
     if(!error.isEmpty()){
@@ -18,7 +22,6 @@ const validation = [
     next();
   },
 ];
-
 
 //get method
 router.get('/', function(req, res) {
