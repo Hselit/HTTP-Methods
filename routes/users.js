@@ -29,21 +29,21 @@ const validation = [
 ];
 
 //get method
-// router.get('/', function(req, res) {
-//   try{
-//     db.query('select * from employee',(err,values)=>{
-//       if(err){
-//         res.status(500).send("Error Occured.."+err);
-//       } else{
-//         console.log(values);
-//         res.json(values);
-//       }
-//     });  
-//   }
-//   catch(error){
-//     res.status(500).json({"message":"Internal Server Error "+error});
-//   }
-// });
+router.get('/', function(req, res) {
+  try{
+    db.query('select * from employee',(err,values)=>{
+      if(err){
+        res.status(500).send("Error Occured.."+err);
+      } else{
+        console.log(values);
+        res.json(values);
+      }
+    });  
+  }
+  catch(error){
+    res.status(500).json({"message":"Internal Server Error "+error});
+  }
+});
 
 
 //get by id
